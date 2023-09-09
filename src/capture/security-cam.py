@@ -1,3 +1,4 @@
+import os
 import logging
 from argparse import ArgumentParser
 
@@ -17,24 +18,35 @@ def args_parser() -> ArgumentParser:
     arg_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Set the log level to DEBUG"
     )
+    arg_parser.add_argument("--logpath", type=str, help="Path to the log file")
     return arg_parser
 
 
-def set_log_level(verbose: bool) -> None:
+def set_log_config(verbose: bool, logpath: str) -> None:
     log_level: int = logging.INFO
     log_level_detail: str = "INFO"
     if verbose:
         log_level = logging.DEBUG
         log_level_detail = "DEBUG"
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)-8s %(message)s",
-        level=log_level,
-        datefmt="%H:%M:%S",
-    )
+    if logpath and os.path.exists(os.path.dirname(logpath)):
+        logging.basicConfig(
+            filename=logpath,
+            filemode="w",
+            format="%(asctime)s %(levelname)-8s %(message)s",
+            level=log_level,
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
+        logging.info(f"Logs are written to file {logpath}")
+    else:
+        logging.basicConfig(
+            format="%(asctime)s %(levelname)-8s %(message)s",
+            level=log_level,
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
     logging.debug(f"Log level set to {log_level_detail}")
 
 
 if __name__ == "__main__":
     parser: ArgumentParser = args_parser()
     args = parser.parse_args()
-    set_log_level(args.verbose)
+    set_log_config(args.verbose, args.logpath)
