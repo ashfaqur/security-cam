@@ -28,15 +28,19 @@ def set_log_config(verbose: bool, logpath: str) -> None:
     if verbose:
         log_level = logging.DEBUG
         log_level_detail = "DEBUG"
-    if logpath and os.path.exists(os.path.dirname(logpath)):
-        logging.basicConfig(
-            filename=logpath,
-            filemode="w",
-            format="%(asctime)s %(levelname)-8s %(message)s",
-            level=log_level,
-            datefmt="%Y-%m-%d %H:%M:%S",
-        )
-        logging.info(f"Logs are written to file {logpath}")
+    if logpath:
+        dir_name = os.path.dirname(logpath)
+        if os.path.exists(dir_name):
+            logging.basicConfig(
+                filename=logpath,
+                filemode="w",
+                format="%(asctime)s %(levelname)-8s %(message)s",
+                level=log_level,
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+            logging.info(f"Logs are written to file {logpath}")
+        else:
+            raise ValueError(f"Given log file path '{logpath}' is invalid")
     else:
         logging.basicConfig(
             format="%(asctime)s %(levelname)-8s %(message)s",
