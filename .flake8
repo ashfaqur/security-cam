@@ -6,6 +6,6 @@ exclude =
     __pycache__,
     build,
     dist,
-    tests,
+    tests/*,
     .eggs,
     *.egg-infos
