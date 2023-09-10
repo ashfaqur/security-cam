@@ -24,6 +24,15 @@ def args_parser() -> ArgumentParser:
 
 
 def set_log_config(verbose: bool, logdir: str) -> None:
+    """
+    Sets the logging configuration for the application.
+
+    This function sets the logging level and log file path based on the input parameters.
+
+    :param verbose: A boolean indicating whether to set the logging level to `DEBUG`.
+    :param logdir: The path to the directory where the log file should be written. If `None`, log messages are printed to the console.
+    :return: None
+    """
     log_level: int = logging.INFO
     log_level_detail: str = "INFO"
     if verbose:
