@@ -1,7 +1,9 @@
 import os
 import logging
 from src.capture.util import get_log_file_name
+from src.capture.record import main
 from argparse import ArgumentParser
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,3 +66,9 @@ if __name__ == "__main__":
     parser: ArgumentParser = args_parser()
     args = parser.parse_args()
     set_log_config(args.verbose, args.logdir)
+
+    try:
+        main()
+    except Exception as e:
+        logging.error(e)
+        raise e
