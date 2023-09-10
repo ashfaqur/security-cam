@@ -1,6 +1,6 @@
 import os
 import logging
-from util import get_log_file_name
+from src.capture.util import get_log_file_name
 from argparse import ArgumentParser
 
 logger = logging.getLogger(__name__)
