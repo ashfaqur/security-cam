@@ -21,6 +21,9 @@ def args_parser() -> ArgumentParser:
     arg_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Set the log level to DEBUG"
     )
+    arg_parser.add_argument(
+        "-w", "--window", action="store_true", help="Open video window"
+    )
     arg_parser.add_argument("--logdir", type=str, help="Path to the log directory")
     return arg_parser
 
@@ -68,7 +71,7 @@ if __name__ == "__main__":
     set_log_config(args.verbose, args.logdir)
 
     try:
-        main()
+        main(args.window)
     except Exception as e:
         logging.error(e)
         raise e
