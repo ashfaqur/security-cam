@@ -18,7 +18,7 @@ def args_parser() -> ArgumentParser:
     arg_parser: ArgumentParser = ArgumentParser(
         description="Captures images and videos from camera based on motion detection"
     )
-    parser.add_argument(
+    arg_parser.add_argument(
         "snapshot_dir",
         metavar="snapshot_dir",
         type=str,
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     set_log_config(args.verbose, args.logdir)
 
     try:
-        main(args.directory, args.window)
+        main(args.snapshot_dir, args.window)
     except Exception as e:
         logging.error(e)
         raise e

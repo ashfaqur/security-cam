@@ -11,11 +11,11 @@ STAMP_COLOR = (0, 0, 255)
 
 BODY_DETECTION_CONFIG = "haarcascade_upperbody.xml"
 BODY_DETECTION_SCALE_FACTOR = 1.1
-BODY_DETECTION_MIN_NEIGHBOURS = 5
+BODY_DETECTION_MIN_NEIGHBOURS = 2
 
 # All time in seconds
 PERIOD_BETWEEN_PROCESSING = 2
-SNAPSHOT_PERIODS = (0, 10, 20, 60, 120, 600)
+SNAPSHOT_PERIODS = (0, 5, 10, 60, 120, 600)
 DETECTION_END_TIME_PERIOD = 60
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,12 @@ def main(directory: str, window: bool) -> None:
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
     try:
-        recording(capture=cap, snapshot_directory=directory, show_window=window)
+        recording(
+            capture=cap,
+            snapshot_directory=directory,
+            show_window=window,
+            draw_outline=True,
+        )
     except KeyboardInterrupt:
         logger.warn("Stopping script with keyboard interrupt")
     finally:
@@ -84,7 +89,9 @@ def recording(
                 file_path = os.path.join(snapshot_directory, file_name)
                 snapshot_counter += 1
                 last_snapshot_time = time()
-                print(f"file_name: {file_path}, snapshot counter {snapshot_counter}")
+                logger.info(
+                    f"file_name: {file_path}, snapshot counter {snapshot_counter}"
+                )
                 cv2.imwrite(file_path, frame)
             elif detection_ongoing:
                 if (time() - last_detection_time) > DETECTION_END_TIME_PERIOD:
