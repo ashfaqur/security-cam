@@ -37,7 +37,9 @@ def args_parser() -> ArgumentParser:
     arg_parser.add_argument(
         "-w", "--window", action="store_true", help="Open video window"
     )
-    arg_parser.add_argument("--logdir", type=str, help="Path to the log directory")
+    arg_parser.add_argument(
+        "-l", "--logdir", metavar="logdir", type=str, help="Path to the log directory"
+    )
     return arg_parser
 
 
