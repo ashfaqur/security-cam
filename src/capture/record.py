@@ -1,6 +1,7 @@
 import logging
 import cv2
 import os
+import subprocess
 from typing import Any, Optional
 from time import time
 from datetime import datetime
@@ -21,15 +22,21 @@ DETECTION_END_TIME_PERIOD = 60
 logger = logging.getLogger(__name__)
 
 
-def main(directory: str, window: bool) -> None:
+def main(directory: str, dropbox_uploader: str, window: bool) -> None:
     if not os.path.isdir(directory):
         raise ValueError(f"Given snapshot output path '{directory}' is not a directory")
+
+    if dropbox_uploader and not os.path.isfile(dropbox_uploader):
+        raise ValueError(
+            f"Given dropbox uploader script file '{dropbox_uploader}' does not exist"
+        )
 
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
     try:
         recording(
             capture=cap,
+            dropbox_uploader=dropbox_uploader,
             snapshot_directory=directory,
             show_window=window,
             draw_outline=True,
@@ -45,6 +52,7 @@ def main(directory: str, window: bool) -> None:
 def recording(
     capture: Any,
     snapshot_directory: str,
+    dropbox_uploader: str,
     show_window: bool = False,
     crop_frame: Optional[tuple[int, int, int, int]] = None,
     draw_outline: bool = False,
@@ -93,6 +101,14 @@ def recording(
                     f"file_name: {file_path}, snapshot counter {snapshot_counter}"
                 )
                 cv2.imwrite(file_path, frame)
+                if dropbox_uploader:
+                    upload(
+                        dropbox_uploader,
+                        file_path,
+                        file_path_date,
+                        file_path_time,
+                        extension,
+                    )
             elif detection_ongoing:
                 if (time() - last_detection_time) > DETECTION_END_TIME_PERIOD:
                     logger.debug("Stopping ongoing detection")
@@ -147,3 +163,19 @@ def take_snapshot(counter: int, last_time: float) -> bool:
     if counter < index:
         index = counter
     return (time() - last_time) > SNAPSHOT_PERIODS[index]
+
+
+def upload(
+    dropbox_uploader: str, file_path: str, date: Any, timestamp: Any, extension: str
+) -> None:
+    upload_path = os.path.join("de/images", date, timestamp + extension)
+    upload = subprocess.run(
+        [dropbox_uploader, "-s", "upload", file_path, upload_path],
+        capture_output=True,
+        text=True,
+    )
+    logger.debug(upload.args)
+    logger.debug(upload.returncode)
+    logger.info(upload.stdout)
+    if upload.returncode != 0:
+        logger.error("Upload failed")

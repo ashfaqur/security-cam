@@ -25,6 +25,13 @@ def args_parser() -> ArgumentParser:
         help="directory for saving snapshots",
     )
     arg_parser.add_argument(
+        "-d",
+        "--dropbox_uploader",
+        metavar="dropbox_uploader",
+        type=str,
+        help="Path to dropbox uploader script",
+    )
+    arg_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Set the log level to DEBUG"
     )
     arg_parser.add_argument(
@@ -77,7 +84,7 @@ if __name__ == "__main__":
     set_log_config(args.verbose, args.logdir)
 
     try:
-        main(args.snapshot_dir, args.window)
+        main(args.snapshot_dir, args.dropbox_uploader, args.window)
     except Exception as e:
         logging.error(e)
         raise e
