@@ -19,9 +19,27 @@ def args_parser() -> ArgumentParser:
         description="Captures images and videos from camera based on motion detection"
     )
     arg_parser.add_argument(
+        "snapshot_dir",
+        metavar="snapshot_dir",
+        type=str,
+        help="directory for saving snapshots",
+    )
+    arg_parser.add_argument(
+        "-d",
+        "--dropbox_uploader",
+        metavar="dropbox_uploader",
+        type=str,
+        help="Path to dropbox uploader script",
+    )
+    arg_parser.add_argument(
         "-v", "--verbose", action="store_true", help="Set the log level to DEBUG"
     )
-    arg_parser.add_argument("--logdir", type=str, help="Path to the log directory")
+    arg_parser.add_argument(
+        "-w", "--window", action="store_true", help="Open video window"
+    )
+    arg_parser.add_argument(
+        "-l", "--logdir", metavar="logdir", type=str, help="Path to the log directory"
+    )
     return arg_parser
 
 
@@ -68,7 +86,7 @@ if __name__ == "__main__":
     set_log_config(args.verbose, args.logdir)
 
     try:
-        main()
+        main(args.snapshot_dir, args.dropbox_uploader, args.window)
     except Exception as e:
         logging.error(e)
         raise e

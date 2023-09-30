@@ -1,0 +1,17 @@
+2023-09-30 23:28:45 INFO     Logs are written to file '/home/pi/sb/security-cam/logs/2023-09-30_23-28-45_security_cam_log.txt'
+2023-09-30 23:28:45 DEBUG    Log level set to DEBUG
+2023-09-30 23:28:45 DEBUG    Using video source at id '0'
+2023-09-30 23:30:21 INFO     Detected a person
+2023-09-30 23:30:22 INFO     file_name: /home/pi/Pictures/2023-09-30_23-30-22.jpg, snapshot counter 1
+2023-09-30 23:30:24 DEBUG    ['/home/pi/sb/Dropbox-Uploader/dropbox_uploader.sh', '-s', 'upload', '/home/pi/Pictures/2023-09-30_23-30-22.jpg', 'de/images/2023-09-30/23-30-22.jpg']
+2023-09-30 23:30:24 DEBUG    0
+2023-09-30 23:30:24 INFO      > Uploading "/home/pi/Pictures/2023-09-30_23-30-22.jpg" to "/de/images/2023-09-30/23-30-22.jpg"... DONE
+
+2023-09-30 23:30:25 INFO     Detected a person
+2023-09-30 23:30:27 INFO     Detected a person
+2023-09-30 23:30:27 INFO     file_name: /home/pi/Pictures/2023-09-30_23-30-27.jpg, snapshot counter 2
+2023-09-30 23:30:29 DEBUG    ['/home/pi/sb/Dropbox-Uploader/dropbox_uploader.sh', '-s', 'upload', '/home/pi/Pictures/2023-09-30_23-30-27.jpg', 'de/images/2023-09-30/23-30-27.jpg']
+2023-09-30 23:30:29 DEBUG    0
+2023-09-30 23:30:29 INFO      > Uploading "/home/pi/Pictures/2023-09-30_23-30-27.jpg" to "/de/images/2023-09-30/23-30-27.jpg"... DONE
+
+2023-09-30 23:30:32 INFO     Detected a person

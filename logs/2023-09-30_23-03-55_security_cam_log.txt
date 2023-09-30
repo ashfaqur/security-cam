@@ -1,0 +1,17 @@
+2023-09-30 23:03:55 INFO     Logs are written to file '/home/pi/sb/security-cam/logs/2023-09-30_23-03-55_security_cam_log.txt'
+2023-09-30 23:03:55 DEBUG    Log level set to DEBUG
+2023-09-30 23:03:55 DEBUG    Using video source at id '0'
+2023-09-30 23:04:48 INFO     Detected a person
+2023-09-30 23:04:48 INFO     file_name: /home/pi/Pictures/2023-09-30_23-04-48.jpg, snapshot counter 1
+2023-09-30 23:04:51 DEBUG    ['/home/pi/sb/Dropbox-Uploader/dropbox_uploader.sh', '-s', 'upload', '/home/pi/Pictures/2023-09-30_23-04-48.jpg', 'de/images/2023-09-30/23-04-48.jpg']
+2023-09-30 23:04:51 DEBUG    0
+2023-09-30 23:04:51 INFO      > Uploading "/home/pi/Pictures/2023-09-30_23-04-48.jpg" to "/de/images/2023-09-30/23-04-48.jpg"... DONE
+
+2023-09-30 23:04:54 INFO     Detected a person
+2023-09-30 23:04:54 INFO     file_name: /home/pi/Pictures/2023-09-30_23-04-54.jpg, snapshot counter 2
+2023-09-30 23:04:56 DEBUG    ['/home/pi/sb/Dropbox-Uploader/dropbox_uploader.sh', '-s', 'upload', '/home/pi/Pictures/2023-09-30_23-04-54.jpg', 'de/images/2023-09-30/23-04-54.jpg']
+2023-09-30 23:04:56 DEBUG    0
+2023-09-30 23:04:56 INFO      > Uploading "/home/pi/Pictures/2023-09-30_23-04-54.jpg" to "/de/images/2023-09-30/23-04-54.jpg"... DONE
+
+2023-09-30 23:04:57 INFO     Detected a person
+2023-09-30 23:05:38 WARNING  Stopping script with keyboard interrupt
