@@ -12,7 +12,7 @@ STAMP_COLOR = (0, 0, 255)
 
 BODY_DETECTION_CONFIG = "haarcascade_upperbody.xml"
 BODY_DETECTION_SCALE_FACTOR = 1.1
-BODY_DETECTION_MIN_NEIGHBOURS = 5
+BODY_DETECTION_MIN_NEIGHBOURS = 3
 
 # All time in seconds
 PERIOD_BETWEEN_PROCESSING = 2
@@ -87,33 +87,37 @@ def recording(
             if draw_outline:
                 for x, y, w, h in upper_body_locations:
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            if take_snapshot(snapshot_counter, last_snapshot_time):
-                date_time = datetime.now()
-                file_path_date = date_time.strftime("%Y-%m-%d")
-                file_path_time = date_time.strftime("%H-%M-%S")
-                put_text(frame, date_time, width)
-                extension = ".jpg"
-                file_name = file_path_date + "_" + file_path_time + extension
-                file_path = os.path.join(snapshot_directory, file_name)
+            if do_take_snapshot(snapshot_counter, last_snapshot_time):
                 snapshot_counter += 1
                 last_snapshot_time = time()
-                logger.info(
-                    f"file_name: {file_path}, snapshot counter {snapshot_counter}"
-                )
-                cv2.imwrite(file_path, frame)
-                if dropbox_uploader:
-                    upload(
-                        dropbox_uploader,
-                        file_path,
-                        file_path_date,
-                        file_path_time,
-                        extension,
-                    )
+                take_snapshot(frame, width, snapshot_directory, dropbox_uploader)
             elif detection_ongoing:
                 if (time() - last_detection_time) > DETECTION_END_TIME_PERIOD:
                     logger.debug("Stopping ongoing detection")
                     detection_ongoing = False
                     snapshot_counter = 0
+
+
+def take_snapshot(
+    frame: Any, width: int, snapshot_directory: str, dropbox_uploader: str
+) -> None:
+    date_time = datetime.now()
+    file_path_date = date_time.strftime("%Y-%m-%d")
+    file_path_time = date_time.strftime("%H-%M-%S")
+    put_text(frame, date_time, width)
+    extension = ".jpg"
+    file_name = file_path_date + "_" + file_path_time + extension
+    file_path = os.path.join(snapshot_directory, file_name)
+    logger.info(f"file_name: {file_path}")
+    cv2.imwrite(file_path, frame)
+    if dropbox_uploader:
+        upload(
+            dropbox_uploader,
+            file_path,
+            file_path_date,
+            file_path_time,
+            extension,
+        )
 
 
 def put_text(frame: Any, date_time: Any, width: int) -> None:
@@ -158,7 +162,7 @@ def detect(grey_frame: Any, upper_body_cascade: Any) -> Any:
     )
 
 
-def take_snapshot(counter: int, last_time: float) -> bool:
+def do_take_snapshot(counter: int, last_time: float) -> bool:
     index: int = len(SNAPSHOT_PERIODS) - 1
     if counter < index:
         index = counter
@@ -168,7 +172,7 @@ def take_snapshot(counter: int, last_time: float) -> bool:
 def upload(
     dropbox_uploader: str, file_path: str, date: Any, timestamp: Any, extension: str
 ) -> None:
-    upload_path = os.path.join("de/images", date, timestamp + extension)
+    upload_path = os.path.join("images", date, timestamp + extension)
     upload = subprocess.run(
         [dropbox_uploader, "-s", "upload", file_path, upload_path],
         capture_output=True,
