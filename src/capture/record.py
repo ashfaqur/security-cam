@@ -2,9 +2,11 @@ import logging
 import cv2
 import os
 import subprocess
+from src.capture.util import is_connected
 from typing import Any, Optional, Tuple
 from time import time
 from datetime import datetime
+
 
 VIDEO_DEVICE_ID = 0
 
@@ -15,7 +17,7 @@ BODY_DETECTION_SCALE_FACTOR = 1.1
 BODY_DETECTION_MIN_NEIGHBOURS = 6
 
 # All time in seconds
-PERIOD_BETWEEN_PROCESSING = 2
+DEFAULT_PERIOD_BETWEEN_PROCESSING = 2
 SNAPSHOT_PERIODS = (0, 5, 10, 60, 120, 600)
 DETECTION_END_TIME_PERIOD = 60
 SAMPLE_TIME_PERIOD = 3600
@@ -28,7 +30,7 @@ def main(
     dropbox_uploader: str,
     window: bool = False,
     crop_frame: Optional[tuple[int, int, int, int]] = None,
-    period: int = PERIOD_BETWEEN_PROCESSING,
+    period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
 ) -> None:
     if not os.path.isdir(directory):
         raise ValueError(f"Given snapshot output path '{directory}' is not a directory")
@@ -38,7 +40,7 @@ def main(
             f"Given dropbox uploader script file '{dropbox_uploader}' does not exist"
         )
     if not period or period <= 0:
-        period = PERIOD_BETWEEN_PROCESSING
+        period = DEFAULT_PERIOD_BETWEEN_PROCESSING
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
     try:
@@ -69,7 +71,7 @@ def recording(
     crop_frame: Optional[tuple[int, int, int, int]] = None,
     draw_outline: bool = False,
     sample_pics: bool = True,
-    period: int = PERIOD_BETWEEN_PROCESSING,
+    period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
 ) -> None:
     upper_body_cascade: Any = cv2.CascadeClassifier(
         cv2.data.haarcascades + BODY_DETECTION_CONFIG
@@ -214,14 +216,18 @@ def do_take_snapshot(counter: int, last_time: float) -> bool:
 def upload(
     dropbox_uploader: str, file_path: str, date: Any, timestamp: Any, extension: str
 ) -> None:
-    upload_path = os.path.join("bd/images", date, timestamp + extension)
-    upload = subprocess.run(
-        [dropbox_uploader, "-s", "upload", file_path, upload_path],
-        capture_output=True,
-        text=True,
-    )
-    logger.debug(upload.args)
-    logger.debug(upload.returncode)
-    logger.info(upload.stdout)
-    if upload.returncode != 0:
-        logger.error("Upload failed")
+    if is_connected():
+        logger.debug("Uploading image to dropbox")
+        upload_path = os.path.join("bd/images", date, timestamp + extension)
+        upload = subprocess.run(
+            [dropbox_uploader, "-s", "upload", file_path, upload_path],
+            capture_output=True,
+            text=True,
+        )
+        logger.debug(upload.args)
+        logger.debug(upload.returncode)
+        logger.info(upload.stdout)
+        if upload.returncode != 0:
+            logger.error("Upload failed")
+    else:
+        logger.warn("Upload skipped as internet connection to dropbox is unavailable.")
