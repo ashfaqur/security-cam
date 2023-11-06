@@ -2,7 +2,7 @@ import logging
 import cv2
 import os
 import subprocess
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 from time import time
 from datetime import datetime
 
@@ -23,7 +23,13 @@ SAMPLE_TIME_PERIOD = 3600
 logger = logging.getLogger(__name__)
 
 
-def main(directory: str, dropbox_uploader: str, window: bool) -> None:
+def main(
+    directory: str,
+    dropbox_uploader: str,
+    window: bool = False,
+    crop_frame: Optional[tuple[int, int, int, int]] = None,
+    period: int = PERIOD_BETWEEN_PROCESSING,
+) -> None:
     if not os.path.isdir(directory):
         raise ValueError(f"Given snapshot output path '{directory}' is not a directory")
 
@@ -31,7 +37,8 @@ def main(directory: str, dropbox_uploader: str, window: bool) -> None:
         raise ValueError(
             f"Given dropbox uploader script file '{dropbox_uploader}' does not exist"
         )
-
+    if not period or period <= 0:
+        period = PERIOD_BETWEEN_PROCESSING
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
     try:
@@ -42,7 +49,10 @@ def main(directory: str, dropbox_uploader: str, window: bool) -> None:
             show_window=window,
             draw_outline=True,
             sample_pics=True,
+            crop_frame=crop_frame,
+            period=period,
         )
+
     except KeyboardInterrupt:
         logger.warn("Stopping script with keyboard interrupt")
     finally:
@@ -59,6 +69,7 @@ def recording(
     crop_frame: Optional[tuple[int, int, int, int]] = None,
     draw_outline: bool = False,
     sample_pics: bool = True,
+    period: int = PERIOD_BETWEEN_PROCESSING,
 ) -> None:
     upper_body_cascade: Any = cv2.CascadeClassifier(
         cv2.data.haarcascades + BODY_DETECTION_CONFIG
@@ -70,7 +81,13 @@ def recording(
 
     while True:
         _, frame = capture.read()
+        if not frame.any():
+            raise ValueError(
+                "Video frame is undefined. Possibly the camera is inaccessible"
+            )
+        height, width = frame.shape[:2]
         if crop_frame and len(crop_frame) == 4:
+            validate_crop_frame_parameters(crop_frame, height, width)
             frame = frame[crop_frame[0] : crop_frame[1], crop_frame[2] : crop_frame[3]]
         height, width = frame.shape[:2]
 
@@ -86,7 +103,7 @@ def recording(
                 logger.debug("Taking a sample pic")
                 take_snapshot(frame, width, snapshot_directory, dropbox_uploader, True)
 
-        if not do_process(last_process_time):
+        if not do_process(last_process_time, period):
             continue
 
         last_process_time = time()
@@ -108,6 +125,19 @@ def recording(
                     logger.debug("Stopping ongoing detection")
                     detection_ongoing = False
                     snapshot_counter = 0
+
+
+def validate_crop_frame_parameters(
+    crop_frame: Tuple[int, int, int, int], height: int, width: int
+) -> None:
+    if crop_frame[0] < 0 or crop_frame[0] > height or crop_frame[0] > crop_frame[1]:
+        ValueError(f"Crop frame invalid x parameter {crop_frame[0]}")
+    if crop_frame[1] < 0 or crop_frame[1] > height or crop_frame[1] < crop_frame[0]:
+        ValueError(f"Crop frame invalid x parameter {crop_frame[1]}")
+    if crop_frame[2] < 0 or crop_frame[2] > width or crop_frame[2] > crop_frame[3]:
+        ValueError(f"Crop frame invalid y parameter {crop_frame[2]}")
+    if crop_frame[3] < 0 or crop_frame[3] > width or crop_frame[3] < crop_frame[2]:
+        ValueError(f"Crop frame invalid y parameter {crop_frame[3]}")
 
 
 def take_snapshot(
@@ -164,8 +194,8 @@ def check_camera_open(cap: Any) -> None:
         logging.debug(f"Using video source at id '{VIDEO_DEVICE_ID}'")
 
 
-def do_process(last_time_stamp: float) -> float:
-    return (time() - last_time_stamp) > PERIOD_BETWEEN_PROCESSING
+def do_process(last_time_stamp: float, period: int) -> float:
+    return (time() - last_time_stamp) > period
 
 
 def detect(grey_frame: Any, upper_body_cascade: Any) -> Any:
