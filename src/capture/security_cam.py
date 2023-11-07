@@ -23,7 +23,7 @@ def args_parser() -> ArgumentParser:
         "snapshot_dir",
         metavar="snapshot_dir",
         type=str,
-        help="directory for saving snapshots",
+        help="directory for saving captured images",
     )
     arg_parser.add_argument(
         "-d",
