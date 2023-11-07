@@ -17,7 +17,7 @@ def args_parser() -> ArgumentParser:
     :rtype: ArgumentParser
     """
     arg_parser: ArgumentParser = ArgumentParser(
-        description="Captures images and videos from camera based on motion detection"
+        description="Captures images and videos from camera based on person detection"
     )
     arg_parser.add_argument(
         "snapshot_dir",
