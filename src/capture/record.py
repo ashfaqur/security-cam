@@ -2,7 +2,7 @@ import logging
 import cv2
 import os
 import subprocess
-from src.capture.util import is_connected
+from src.capture.util import is_connected, validate_crop_frame_parameters, put_text
 from typing import Any, Optional, Tuple
 from time import time
 from datetime import datetime
@@ -68,7 +68,7 @@ def recording(
     snapshot_directory: str,
     dropbox_uploader: str,
     show_window: bool = False,
-    crop_frame: Optional[tuple[int, int, int, int]] = None,
+    crop_frame: Optional[Tuple[int, int, int, int]] = None,
     draw_outline: bool = False,
     sample_pics: bool = True,
     period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
@@ -129,26 +129,13 @@ def recording(
                     snapshot_counter = 0
 
 
-def validate_crop_frame_parameters(
-    crop_frame: Tuple[int, int, int, int], height: int, width: int
-) -> None:
-    if crop_frame[0] < 0 or crop_frame[0] > height or crop_frame[0] > crop_frame[1]:
-        ValueError(f"Crop frame invalid x parameter {crop_frame[0]}")
-    if crop_frame[1] < 0 or crop_frame[1] > height or crop_frame[1] < crop_frame[0]:
-        ValueError(f"Crop frame invalid x parameter {crop_frame[1]}")
-    if crop_frame[2] < 0 or crop_frame[2] > width or crop_frame[2] > crop_frame[3]:
-        ValueError(f"Crop frame invalid y parameter {crop_frame[2]}")
-    if crop_frame[3] < 0 or crop_frame[3] > width or crop_frame[3] < crop_frame[2]:
-        ValueError(f"Crop frame invalid y parameter {crop_frame[3]}")
-
-
 def take_snapshot(
     frame: Any, width: int, snapshot_directory: str, dropbox_uploader: str, sample: bool
 ) -> None:
     date_time = datetime.now()
     file_path_date = date_time.strftime("%Y-%m-%d")
     file_path_time = date_time.strftime("%H-%M-%S")
-    put_text(frame, date_time, width)
+    put_text(frame, date_time, width, STAMP_COLOR)
     extension = "_sample.jpg" if sample else "_detected.jpg"
     file_name = file_path_date + "_" + file_path_time + extension
     file_path = os.path.join(snapshot_directory, file_name)
@@ -162,31 +149,6 @@ def take_snapshot(
             file_path_time,
             extension,
         )
-
-
-def put_text(frame: Any, date_time: Any, width: int) -> None:
-    img_date = date_time.strftime("%d/%m/%Y")
-    img_time = date_time.strftime("%H:%M:%S")
-    cv2.putText(
-        frame,
-        img_date,
-        (10, 15),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        STAMP_COLOR,
-        2,
-        2,
-    )
-    cv2.putText(
-        frame,
-        img_time,
-        (width - 80, 15),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        STAMP_COLOR,
-        2,
-        2,
-    )
 
 
 def check_camera_open(cap: Any) -> None:
