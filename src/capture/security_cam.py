@@ -1,13 +1,13 @@
 import logging
 from src.capture.record import main
-from src.capture.arg_parser import ArgParser
+from src.capture.arg_parser import ArgParser, Args
 from src.capture.log_config import LogConfig
 
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     parser: ArgParser = ArgParser()
-    args = parser.parse_args()
+    args: Args = parser.parse_args()
     LogConfig(args.verbose, args.logdir)
 
     try:
