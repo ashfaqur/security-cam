@@ -2,7 +2,12 @@ import logging
 import cv2
 import os
 import subprocess
-from src.capture.util import is_connected, validate_crop_frame_parameters, put_text
+from src.capture.util import (
+    validate,
+    is_connected,
+    validate_crop_frame_parameters,
+    put_text,
+)
 from typing import Any, Optional, Tuple
 from time import time
 from datetime import datetime
@@ -29,16 +34,10 @@ def main(
     directory: str,
     dropbox_uploader: str,
     window: bool = False,
-    crop_frame: Optional[tuple[int, int, int, int]] = None,
+    crop_frame: Optional[Tuple[int, int, int, int]] = None,
     period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
 ) -> None:
-    if not os.path.isdir(directory):
-        raise ValueError(f"Given snapshot output path '{directory}' is not a directory")
-
-    if dropbox_uploader and not os.path.isfile(dropbox_uploader):
-        raise ValueError(
-            f"Given dropbox uploader script file '{dropbox_uploader}' does not exist"
-        )
+    validate(directory, dropbox_uploader)
     if not period or period <= 0:
         period = DEFAULT_PERIOD_BETWEEN_PROCESSING
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
