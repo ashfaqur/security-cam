@@ -7,8 +7,9 @@ from src.capture.util import (
     is_connected,
     validate_crop_frame_parameters,
     put_text,
+    process_fp_csv,
 )
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, List
 from time import time
 from datetime import datetime
 
@@ -79,6 +80,9 @@ def recording(
     last_snapshot_time: float = 0
     snapshot_counter: int = 0
     last_sample_time = datetime.now()
+    false_positive_locations: List[Tuple[int, int, int, int]] = process_fp_csv(
+        snapshot_directory
+    )
 
     while True:
         _, frame = capture.read()
@@ -109,14 +113,16 @@ def recording(
 
         last_process_time = time()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        upper_body_locations = detect(gray, upper_body_cascade)
-        if len(upper_body_locations) > 0:
+        upper_body_locations: List[Tuple[int, int, int, int]] = detect(
+            gray, upper_body_cascade
+        )
+        if is_detected(upper_body_locations, false_positive_locations):
+            for x, y, w, h in upper_body_locations:
+                if draw_outline:
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
             logger.info("Detected a person")
             detection_ongoing = True
             last_detection_time = time()
-            if draw_outline:
-                for x, y, w, h in upper_body_locations:
-                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
             if do_take_snapshot(snapshot_counter, last_snapshot_time):
                 snapshot_counter += 1
                 last_snapshot_time = time()
@@ -126,6 +132,20 @@ def recording(
                     logger.debug("Stopping ongoing detection")
                     detection_ongoing = False
                     snapshot_counter = 0
+
+
+def is_detected(
+    upper_body_locations: List[Tuple[int, int, int, int]],
+    false_positive_locations: List[Tuple[int, int, int, int]],
+) -> bool:
+    detected: bool = False
+    if len(upper_body_locations) > 0:
+        for x, y, w, h in upper_body_locations:
+            if (x, y, w, h) in false_positive_locations:
+                continue
+            logger.debug(f"Detected x,y,w,h ({x},{y},{w},{h})")
+            detected = True
+    return detected
 
 
 def take_snapshot(
