@@ -2,7 +2,8 @@ import time
 import socket
 import cv2
 import os
-from typing import Tuple, Any
+import csv
+from typing import List, Tuple, Any
 
 
 def validate(img_dir: str, uploader: str) -> None:
@@ -71,3 +72,24 @@ def put_text(
         2,
         2,
     )
+
+
+def process_fp_csv(directory: str) -> List[Tuple[int, int, int, int]]:
+    file_path = os.path.join(directory, "fp.csv")
+
+    if not os.path.isdir(directory):
+        raise ValueError(f"The directory {directory} does not exist.")
+    if not os.path.isfile(file_path):
+        raise ValueError(f"The file {file_path} does not exist.")
+
+    result: List[Tuple[int, int, int, int]] = []
+    with open(file_path, "r") as file:
+        reader = csv.reader(file)
+        for row in reader:
+            if len(row) != 4:
+                raise ValueError("Each line must contain exactly four integers.")
+            try:
+                result.append((int(row[0]), int(row[1]), int(row[2]), int(row[3])))
+            except ValueError:
+                raise ValueError("All values in each line must be integers.")
+    return result
