@@ -17,6 +17,7 @@ if __name__ == "__main__":
             args.window,
             args.crop,
             args.period,
+            args.sensitivity,
         )
     except Exception as e:
         logging.error(e)
