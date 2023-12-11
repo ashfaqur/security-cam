@@ -37,10 +37,16 @@ def main(
     window: bool = False,
     crop_frame: Optional[Tuple[int, int, int, int]] = None,
     period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
+    sensitivity: int = BODY_DETECTION_MIN_NEIGHBOURS,
 ) -> None:
     validate(directory, dropbox_uploader)
     if not period or period <= 0:
         period = DEFAULT_PERIOD_BETWEEN_PROCESSING
+    if not sensitivity:
+        sensitivity = BODY_DETECTION_MIN_NEIGHBOURS
+        logger.debug(f"Using default sensitivity: {BODY_DETECTION_MIN_NEIGHBOURS}")
+    else:
+        logger.debug(f"Using user specified sensitivity: {sensitivity}")
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
     try:
@@ -53,6 +59,7 @@ def main(
             sample_pics=True,
             crop_frame=crop_frame,
             period=period,
+            sensitivity=sensitivity,
         )
 
     except KeyboardInterrupt:
@@ -72,6 +79,7 @@ def recording(
     draw_outline: bool = False,
     sample_pics: bool = True,
     period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
+    sensitivity: int = BODY_DETECTION_MIN_NEIGHBOURS,
 ) -> None:
     upper_body_cascade: Any = cv2.CascadeClassifier(
         cv2.data.haarcascades + BODY_DETECTION_CONFIG
@@ -114,7 +122,7 @@ def recording(
         last_process_time = time()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         upper_body_locations: List[Tuple[int, int, int, int]] = detect(
-            gray, upper_body_cascade
+            gray, upper_body_cascade, sensitivity
         )
         if is_detected(upper_body_locations, false_positive_locations):
             for x, y, w, h in upper_body_locations:
@@ -181,9 +189,9 @@ def do_process(last_time_stamp: float, period: int) -> float:
     return (time() - last_time_stamp) > period
 
 
-def detect(grey_frame: Any, upper_body_cascade: Any) -> Any:
+def detect(grey_frame: Any, upper_body_cascade: Any, sensitivity: int) -> Any:
     return upper_body_cascade.detectMultiScale(
-        grey_frame, BODY_DETECTION_SCALE_FACTOR, BODY_DETECTION_MIN_NEIGHBOURS
+        grey_frame, BODY_DETECTION_SCALE_FACTOR, sensitivity
     )
 
 

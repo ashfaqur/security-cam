@@ -10,6 +10,7 @@ class Args:
     logdir: str
     crop: Tuple[int, int, int, int]
     period: int
+    sensitivity: int
 
 
 class ArgParser:
@@ -22,14 +23,12 @@ class ArgParser:
     def add_arguments(self) -> None:
         self.parser.add_argument(
             "snapshot_dir",
-            metavar="snapshot_dir",
             type=str,
             help="directory for saving captured images",
         )
         self.parser.add_argument(
             "-d",
             "--dropbox_uploader",
-            metavar="dropbox_uploader",
             type=str,
             help="Path to dropbox uploader script",
         )
@@ -42,23 +41,26 @@ class ArgParser:
         self.parser.add_argument(
             "-l",
             "--logdir",
-            metavar="logdir",
             type=str,
             help="Path to the log directory",
         )
         self.parser.add_argument(
             "-c",
             "--crop",
-            metavar="crop",
             type=tuple_check,
             help="A tuple of four integers for cropping frame",
         )
         self.parser.add_argument(
             "-p",
             "--period",
-            metavar="period",
             type=int,
             help="Period in seconds for analysing video frame",
+        )
+        self.parser.add_argument(
+            "-s",
+            "--sensitivity",
+            type=check_sensitivity,
+            help="Sensitivity value between 2 and 6",
         )
 
     def parse_args(self) -> Args:
@@ -73,3 +75,12 @@ def tuple_check(s: str) -> Tuple[int, ...]:
         return values
     except ValueError:
         raise ArgumentTypeError("Tuple must contain integers only.")
+
+
+def check_sensitivity(value: str) -> int:
+    ivalue = int(value)
+    if ivalue < 2 or ivalue > 6:
+        raise ArgumentTypeError(
+            "%s is an invalid sensitivity value. It should be between 2 and 6." % value
+        )
+    return ivalue
