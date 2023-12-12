@@ -11,6 +11,7 @@ class Args:
     crop: Tuple[int, int, int, int]
     period: int
     sensitivity: int
+    upload_path: str
 
 
 class ArgParser:
@@ -61,6 +62,12 @@ class ArgParser:
             "--sensitivity",
             type=check_sensitivity,
             help="Sensitivity value between 2 and 6",
+        )
+        self.parser.add_argument(
+            "-u",
+            "--upload_path",
+            type=str,
+            help="Upload path",
         )
 
     def parse_args(self) -> Args:

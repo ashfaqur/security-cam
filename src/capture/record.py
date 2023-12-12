@@ -18,6 +18,8 @@ VIDEO_DEVICE_ID = 0
 
 STAMP_COLOR = (0, 0, 255)
 
+DEFAULT_UPLOAD_PATH = "images"
+
 BODY_DETECTION_CONFIG = "haarcascade_upperbody.xml"
 BODY_DETECTION_SCALE_FACTOR = 1.1
 BODY_DETECTION_MIN_NEIGHBOURS = 6
@@ -38,6 +40,7 @@ def main(
     crop_frame: Optional[Tuple[int, int, int, int]] = None,
     period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
     sensitivity: int = BODY_DETECTION_MIN_NEIGHBOURS,
+    upload_path: str = DEFAULT_UPLOAD_PATH,
 ) -> None:
     validate(directory, dropbox_uploader)
     if not period or period <= 0:
@@ -47,6 +50,11 @@ def main(
         logger.debug(f"Using default sensitivity: {BODY_DETECTION_MIN_NEIGHBOURS}")
     else:
         logger.debug(f"Using user specified sensitivity: {sensitivity}")
+    if dropbox_uploader and not upload_path:
+        upload_path = DEFAULT_UPLOAD_PATH
+        logger.debug(f"Using default upload path: {upload_path}")
+    elif dropbox_uploader:
+        logger.debug(f"Using upload path: {upload_path}")
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
     try:
@@ -60,6 +68,7 @@ def main(
             crop_frame=crop_frame,
             period=period,
             sensitivity=sensitivity,
+            upload_path=upload_path,
         )
 
     except KeyboardInterrupt:
@@ -80,6 +89,7 @@ def recording(
     sample_pics: bool = True,
     period: int = DEFAULT_PERIOD_BETWEEN_PROCESSING,
     sensitivity: int = BODY_DETECTION_MIN_NEIGHBOURS,
+    upload_path: str = DEFAULT_UPLOAD_PATH,
 ) -> None:
     upper_body_cascade: Any = cv2.CascadeClassifier(
         cv2.data.haarcascades + BODY_DETECTION_CONFIG
@@ -114,7 +124,14 @@ def recording(
             if (current_time - last_sample_time).seconds >= SAMPLE_TIME_PERIOD:
                 last_sample_time = current_time
                 logger.debug("Taking a sample pic")
-                take_snapshot(frame, width, snapshot_directory, dropbox_uploader, True)
+                take_snapshot(
+                    frame,
+                    width,
+                    snapshot_directory,
+                    dropbox_uploader,
+                    True,
+                    upload_path,
+                )
 
         if not do_process(last_process_time, period):
             continue
@@ -134,7 +151,14 @@ def recording(
             if do_take_snapshot(snapshot_counter, last_snapshot_time):
                 snapshot_counter += 1
                 last_snapshot_time = time()
-                take_snapshot(frame, width, snapshot_directory, dropbox_uploader, False)
+                take_snapshot(
+                    frame,
+                    width,
+                    snapshot_directory,
+                    dropbox_uploader,
+                    False,
+                    upload_path,
+                )
             elif detection_ongoing:
                 if (time() - last_detection_time) > DETECTION_END_TIME_PERIOD:
                     logger.debug("Stopping ongoing detection")
@@ -157,7 +181,12 @@ def is_detected(
 
 
 def take_snapshot(
-    frame: Any, width: int, snapshot_directory: str, dropbox_uploader: str, sample: bool
+    frame: Any,
+    width: int,
+    snapshot_directory: str,
+    dropbox_uploader: str,
+    sample: bool,
+    upload_path: str,
 ) -> None:
     date_time = datetime.now()
     file_path_date = date_time.strftime("%Y-%m-%d")
@@ -175,6 +204,7 @@ def take_snapshot(
             file_path_date,
             file_path_time,
             extension,
+            upload_path,
         )
 
 
@@ -203,11 +233,16 @@ def do_take_snapshot(counter: int, last_time: float) -> bool:
 
 
 def upload(
-    dropbox_uploader: str, file_path: str, date: Any, timestamp: Any, extension: str
+    dropbox_uploader: str,
+    file_path: str,
+    date: Any,
+    timestamp: Any,
+    extension: str,
+    upload_path: str,
 ) -> None:
     if is_connected():
         logger.debug("Uploading image to dropbox")
-        upload_path = os.path.join("bd/images", date, timestamp + extension)
+        upload_path = os.path.join(upload_path, date, timestamp + extension)
         upload = subprocess.run(
             [dropbox_uploader, "-s", "upload", file_path, upload_path],
             capture_output=True,

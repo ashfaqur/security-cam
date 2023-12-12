@@ -18,6 +18,7 @@ if __name__ == "__main__":
             args.crop,
             args.period,
             args.sensitivity,
+            args.upload_path,
         )
     except Exception as e:
         logging.error(e)
