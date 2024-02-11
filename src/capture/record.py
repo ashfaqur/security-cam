@@ -1,3 +1,4 @@
+import atexit
 import logging
 import cv2
 import os
@@ -57,6 +58,8 @@ def main(
         logger.debug(f"Using upload path: {upload_path}")
     cap = cv2.VideoCapture(VIDEO_DEVICE_ID)
     check_camera_open(cap)
+    # Register cleanup function
+    atexit.register(cap.release)
     try:
         recording(
             capture=cap,
